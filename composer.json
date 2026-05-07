@@ -1,0 +1,17 @@
+{
+    "name": "bjorn/ba-book-shop",
+    "autoload": {
+        "psr-4": {
+            "Bjorn\\BaBookShop\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "GITFalz",
+            "email": "bjornarvalkea@gmail.com"
+        }
+    ],
+    "require": {
+        "yahnis-elsts/plugin-update-checker": "^5.6"
+    }
+}
