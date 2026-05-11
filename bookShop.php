@@ -22,7 +22,9 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
 require_once BA_BOOKSHOP_PATH . 'src/admin.php';
-require_once BA_BOOKSHOP_PATH . 'src/includes/functions.php';
+require_once BA_BOOKSHOP_PATH . 'src/includes/helper.php';
+require_once BA_BOOKSHOP_PATH . 'src/includes/encryption.php';
+require_once BA_BOOKSHOP_PATH . 'src/printapi-php/printapi.php';
 
 function ba_bookshop_activate() 
 {
