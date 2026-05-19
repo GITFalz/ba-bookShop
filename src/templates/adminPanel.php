@@ -5,13 +5,15 @@
     $secret = $helper->get_or_update_post_encrypted("secret", "");
 ?>
 <div>
-    <form method="post">
-        <label>Client ID</label>
-        <input name="clientID" value="<?=$clientID?>">
-        <label>Secret</label>
-        <input name="secret" value="<?=$secret?>">
-        <button type="submit">Save</button>
-    </form>
+    <div class="wide-card">
+        <form method="post">
+            <label>Client ID</label>
+            <input name="clientID" value="<?=$clientID?>">
+            <label>Secret</label>
+            <input name="secret" value="<?=$secret?>">
+            <button type="submit">Save</button>
+        </form>
+    </div>
 </div>
 <?php
 
