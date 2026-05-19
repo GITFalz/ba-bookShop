@@ -114,20 +114,23 @@ function ba_get_order_data($order_id) {
         ];
     }
 
-    $address = [
-        'name'     => $order->get_shipping_first_name() . ' ' . $order->get_shipping_last_name(),
-        'line1'    => $order->get_shipping_address_1(),
-        'line2'    => $order->get_shipping_address_2(),
-        'postCode' => $order->get_shipping_postcode(),
-        'city'     => $order->get_shipping_city(),
-        'country'  => $order->get_shipping_country(),
-    ];
+    $shipping = $order->get_address('shipping');
+    $billing  = $order->get_address('billing');
+
+    $address_source = !empty($shipping['address_1']) ? $shipping : $billing;
 
     return [
-        'email'    => $order->get_billing_email(),
-        'items'    => $items,
+        'email' => $order->get_billing_email(),
+        'items' => $items,
         'shipping' => [
-            'address' => $address
+            'address' => [
+                'name' => trim(($address_source['first_name'] ?? '') . ' ' . ($address_source['last_name'] ?? '')),
+                'line1' => $address_source['address_1'] ?? '',
+                'line2' => $address_source['address_2'] ?? '',
+                'postCode' => $address_source['postcode'] ?? '',
+                'city' => $address_source['city'] ?? '',
+                'country' => $address_source['country'] ?? '',
+            ]
         ]
     ];
 }
