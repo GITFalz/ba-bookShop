@@ -54,7 +54,21 @@ add_action('woocommerce_payment_complete', function($order_id) {
 
     $api = ba_get_printapi_client();
     $order_data = ba_get_order_data($order_id);
-    $print_order = $api->post('/orders', $order_data);
+
+    error_log("ORDER DATA");
+    error_log(print_r($order_data, true));
+
+    $print_order = null;
+
+    try 
+    {
+        $print_order = $api->post('/orders', $order_data);
+    }
+    catch (Exception $ex)
+    {
+        error_log("AN ERROR OCCURED");
+        error_log($ex->getMessage());
+    }
 
     error_log("ORDER SENT");
 
@@ -73,8 +87,7 @@ add_action('woocommerce_payment_complete', function($order_id) {
 
     error_log("PRINT ORDER");
     error_log(print_r($print_order, true));
-    error_log("ORDER DATA");
-    error_log(print_r($order_data, true));
+    
 });
 
 function ba_get_order_data($order_id) {
