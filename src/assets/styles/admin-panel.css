@@ -1,3 +1,114 @@
+#wpcontent {
+    padding-left: 0 !important;
+}
+
+.ba-gap-0  { gap: 0; }
+.ba-gap-1  { gap: 4px; }
+.ba-gap-2  { gap: 8px; }
+.ba-gap-3  { gap: 12px; }
+.ba-gap-4  { gap: 16px; }
+.ba-gap-5  { gap: 20px; }
+.ba-gap-6  { gap: 24px; }
+.ba-gap-8  { gap: 32px; }
+.ba-gap-10 { gap: 40px; }
+.ba-gap-12 { gap: 48px; }
+
+.ba-p-0  { padding: 0; }
+.ba-p-1  { padding: 4px; }
+.ba-p-2  { padding: 8px; }
+.ba-p-3  { padding: 12px; }
+.ba-p-4  { padding: 16px; }
+.ba-p-5  { padding: 20px; }
+.ba-p-6  { padding: 24px; }
+.ba-p-8  { padding: 32px; }
+.ba-p-10 { padding: 40px; }
+.ba-p-12 { padding: 48px; }
+
+.ba-px-0  { padding-left: 0;     padding-right: 0; }
+.ba-px-1  { padding-left: 4px;   padding-right: 4px; }
+.ba-px-2  { padding-left: 8px;   padding-right: 8px; }
+.ba-px-4  { padding-left: 16px;  padding-right: 16px; }
+.ba-px-6  { padding-left: 24px;  padding-right: 24px; }
+
+.ba-py-0  { padding-top: 0;      padding-bottom: 0; }
+.ba-py-1  { padding-top: 4px;    padding-bottom: 4px; }
+.ba-py-2  { padding-top: 8px;    padding-bottom: 8px; }
+.ba-py-4  { padding-top: 16px;   padding-bottom: 16px; }
+.ba-py-6  { padding-top: 24px;   padding-bottom: 24px; }
+
+.ba-m-0  { margin: 0; }
+.ba-m-1  { margin: 4px; }
+.ba-m-2  { margin: 8px; }
+.ba-m-3  { margin: 12px; }
+.ba-m-4  { margin: 16px; }
+.ba-m-5  { margin: 20px; }
+.ba-m-6  { margin: 24px; }
+.ba-m-8  { margin: 32px; }
+.ba-m-10 { margin: 40px; }
+.ba-m-12 { margin: 48px; }
+
+.ba-mx-0  { margin-left: 0;     margin-right: 0; }
+.ba-mx-1  { margin-left: 4px;   margin-right: 4px; }
+.ba-mx-2  { margin-left: 8px;   margin-right: 8px; }
+.ba-mx-4  { margin-left: 16px;  margin-right: 16px; }
+.ba-mx-6  { margin-left: 24px;  margin-right: 24px; }
+
+.ba-my-0  { margin-top: 0;      margin-bottom: 0; }
+.ba-my-1  { margin-top: 4px;    margin-bottom: 4px; }
+.ba-my-2  { margin-top: 8px;    margin-bottom: 8px; }
+.ba-my-4  { margin-top: 16px;   margin-bottom: 16px; }
+.ba-my-6  { margin-top: 24px;   margin-bottom: 24px; }
+
+.ba-text-overflow {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ba-flex {
+    display: flex;
+}
+
+.ba-flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.ba-flex-row {
+    display: flex;
+    flex-direction: row;
+}
+
+.ba-center {
+    align-items: center;
+    justify-content: center;
+}
+
+.ba-space-between {
+    justify-content: space-between;
+}
+
+.ba-align-center {
+    align-items: center;
+}
+
+.ba-justify-center {
+    justify-content: center;
+}
+
+.ba-separator {
+  background-color: #e0e0e0;
+  height: 1px;
+}
+
 .wide-card {
-    border: solid 1px #000;
+  border-radius: var(--border-radius-lg, 12px);
+  border: 0.5px solid #e0e0e0;
+  background: #fff;
+}
+
+.inner-card {
+  border-radius: var(--border-radius-lg, 12px);
+  border: 0.5px solid #e0e0e0;
+  background: #f7f7f7;
 }

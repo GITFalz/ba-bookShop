@@ -11,25 +11,20 @@ if ( ! class_exists( 'BA_Helper' ) ) {
 
         # Basic functions
         public function get($key, $default = false) {
-            $data = get_option($this->plugin_key);
-            if (!$data)
-                return false;
-
-            return $data[$key] ?? $default;
+            return get_option($this->key($key), $default);
         }
 
         public function update($key, $update) {
-            $data = get_option($this->plugin_key);
-            if (!$data)
-                $data = [];
-
-            $data[$key] = $update;
-            update_option($this->plugin_key, $data);
+            update_option($this->key($key), $update);
             return true;
         }
 
-        public function clear() {
-            delete_option( $this->plugin_key );
+        public function clear($key) {
+            delete_option($this->key($key));
+        }
+
+        private function key($key) {
+            return $this->plugin_key . "_" . $key;
         }
 
 
