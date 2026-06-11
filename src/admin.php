@@ -24,6 +24,7 @@ add_action('admin_menu', function() {
 });
 
 
+
 function ba_bookshop_admin_panel() 
 {
     wp_enqueue_style( 
@@ -49,6 +50,88 @@ function ba_bookshop_admin_panel()
     include BA_BOOKSHOP_PATH . 'src/templates/adminPanel.php';
 }
 
+add_action('add_meta_boxes', function() {
+    $screen = get_current_screen();
+    error_log('Current screen ID: ' . $screen->id);
+});
+
+add_action('add_meta_boxes', function() {
+    add_meta_box(
+        'ba_printapi_order',
+        'Print API',
+        'ba_printapi_metabox',
+        'woocommerce_page_wc-orders',
+        'side',
+        'high'
+    );
+});
+
+function ba_printapi_metabox($post_or_order) {
+    $order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order($post_or_order->ID);
+    $print_order_id = $order->get_meta('ba_printapi_order_id');
+
+    if (!$print_order_id) {
+        echo '<p>No Print API order found.</p>';
+        return;
+    }
+
+    $api = ba_get_printapi_client();
+    $result = $api->get('/orders/' . $print_order_id);
+
+    if (!$result) {
+        echo '<p style="color:red">Failed to fetch Print API order.</p>';
+        return;
+    }
+
+    ?>
+    <table class="widefat" style="font-size:12px">
+        <tr>
+            <td><strong>Order ID</strong></td>
+            <td><?= esc_html($result->id) ?></td>
+        </tr>
+        <tr>
+            <td><strong>Status</strong></td>
+            <td><?= esc_html($result->status) ?></td>
+        </tr>
+        <tr>
+            <td><strong>Date</strong></td>
+            <td><?= esc_html(date('d/m/Y H:i', strtotime($result->dateTime))) ?></td>
+        </tr>
+        <tr>
+            <td><strong>Production</strong></td>
+            <td><?= esc_html($result->productionSpeed) ?></td>
+        </tr>
+        <tr>
+            <td><strong>Shipping</strong></td>
+            <td><?= esc_html($result->shipping->method->name) ?></td>
+        </tr>
+        <tr>
+            <td><strong>Trackable</strong></td>
+            <td><?= $result->shipping->method->isTrackable ? 'Yes' : 'No' ?></td>
+        </tr>
+        <tr>
+            <td><strong>Total</strong></td>
+            <td>€<?= esc_html($result->invoice->total->cost) ?></td>
+        </tr>
+        <tr>
+            <td><strong>File status</strong></td>
+            <td>
+                <?php foreach ($result->items as $item): ?>
+                    Cover: <?= esc_html($item->files->cover->status) ?><br>
+                    Content: <?= esc_html($item->files->content->status) ?>
+                <?php endforeach; ?>
+            </td>
+        </tr>
+    </table>
+
+    <?php if ($order->get_meta('ba_printapi_failed')): ?>
+        <p style="color:red; margin-top:8px">⚠ This order previously failed.</p>
+    <?php endif; ?>
+    <?php
+}
+
+
+// PAYMENTS
 add_action('woocommerce_payment_complete', function($order_id) {
     $order = wc_get_order($order_id);
     if ($order->get_meta('ba_printapi_order_id')) {
