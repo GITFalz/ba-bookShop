@@ -50,12 +50,29 @@ function ba_bookshop_admin_panel()
 }
 
 add_action('woocommerce_payment_complete', function($order_id) {
-    error_log("SENDING ORDER");
+    $order = wc_get_order($order_id);
+    if ($order->get_meta('ba_printapi_order_id')) {
+        error_log("[" . $order_id . "] " . "ORDER ALREADY SENT, SKIPPING");
+        return;
+    }
+
+    error_log("[" . $order_id . "] " . "SENDING ORDER");
 
     $api = ba_get_printapi_client();
+
+    if (!$api) {
+        error_log("[" . $order_id . "] " . "PRINTAPI CLIENT FAILED TO INIT");
+        return;
+    }
+
     $order_data = ba_get_order_data($order_id);
 
-    error_log("ORDER DATA");
+    if (empty($order_data)) {
+        error_log("[" . $order_id . "] " . "ORDER DATA EMPTY, ABORTING");
+        return;
+    }
+
+    error_log("[" . $order_id . "] " . "ORDER DATA");
     error_log(print_r($order_data, true));
 
     $print_order = null;
@@ -63,34 +80,38 @@ add_action('woocommerce_payment_complete', function($order_id) {
     try 
     {
         $print_order = $api->post('/orders', $order_data);
+        error_log("[" . $order_id . "] " . "ORDER SENT");
     }
     catch (Exception $ex)
     {
-        error_log("AN ERROR OCCURED");
+        error_log("[" . $order_id . "] " . "AN ERROR OCCURED");
         error_log($ex->getMessage());
     }
 
-    error_log("ORDER SENT");
-
-    /*
     if (isset($print_order)) {
         $order = wc_get_order($order_id);
         $order->update_meta_data('ba_printapi_order_id', $print_order->id);
         $order->update_meta_data('ba_printapi_status', $print_order->status);
         $order->save();
 
-        $order->add_order_note('Print API order created: ' . $print_order->id . ' — status: ' . $print_order->status);
+        $order->add_order_note('Print API order created: ' . $print_order->id . ' - status: ' . $print_order->status);
+        
+        error_log("[" . $order_id . "] " . "ORDER STATUS UPDATED");
     } else {
-        error_log('Print API order failed: ' . print_r($print_order, true));
+        $order->update_meta_data('ba_printapi_failed', true);
+        $order->save();
+        $order->add_order_note('Print API order FAILED. Manual review needed.');
+        error_log("[" . $order_id . "] " . 'Print API order failed: ' . print_r($order_data, true));
     }
-        */
 
-    error_log("PRINT ORDER");
+    error_log("[" . $order_id . "] " . "PRINT ORDER");
     error_log(print_r($print_order, true));
-    
 });
 
 function ba_get_order_data($order_id) {
+    $helper = new BA_Helper(BA_BOOKSHOP_HELPER);
+    $productType = $helper->get("productID", 'boek_hc_a5_sta');
+
     $order = wc_get_order($order_id);
 
     $items = [];
@@ -103,13 +124,21 @@ function ba_get_order_data($order_id) {
 
         $page_count = get_post_meta($product_id, 'ba_page_count', true);
 
+        $cover_url   = wp_get_attachment_url($cover_id);
+        $content_url = wp_get_attachment_url($content_id);
+
+        if (!$cover_url || !$content_url) {
+            error_log("[" . $order_id . "] Missing file for product " . $product_id);
+            return [];
+        }
+
         $items[] = [
-            'productId' => 'boek_hc_a5_sta',
+            'productId' => $productType, //'boek_hc_a5_sta'
             'pageCount' => $page_count ? intval($page_count) : 32,
             'quantity'  => $item->get_quantity(),
             'files'     => [
-                'cover'   => wp_get_attachment_url($cover_id),
-                'content' => wp_get_attachment_url($content_id),
+                'cover'   => $cover_url,
+                'content' => $content_url,
             ]
         ];
     }
