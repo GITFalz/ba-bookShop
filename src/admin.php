@@ -51,11 +51,6 @@ function ba_bookshop_admin_panel()
 }
 
 add_action('add_meta_boxes', function() {
-    $screen = get_current_screen();
-    error_log('Current screen ID: ' . $screen->id);
-});
-
-add_action('add_meta_boxes', function() {
     add_meta_box(
         'ba_printapi_order',
         'Print API',
