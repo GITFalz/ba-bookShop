@@ -127,11 +127,21 @@ function ba_printapi_metabox($post_or_order) {
 
 
 // PAYMENTS
-function ba_complete_woocommerce_order_handler($order_id)
-{    
+add_action('woocommerce_payment_complete', function ($order_id) {
     ba_complete_woocommerce_order($order_id);
-}
-add_action('woocommerce_payment_complete', "ba_complete_woocommerce_order_handler");
+});
+
+add_action('woocommerce_order_status_failed', function ($order_id) {
+    error_log("Payment failed");
+});
+
+add_action('woocommerce_order_status_cancelled', function ($order_id) {
+    error_log("Payment cancelled");
+});
+
+add_action('woocommerce_order_status_refunded', function ($order_id) {
+    error_log("Payment refunded");
+});
 
 function ba_upload_cover_handler()
 {
