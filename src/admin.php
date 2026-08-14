@@ -131,18 +131,6 @@ add_action('woocommerce_payment_complete', function ($order_id) {
     ba_complete_woocommerce_order($order_id);
 });
 
-add_action('woocommerce_order_status_failed', function ($order_id) {
-    error_log("Payment failed");
-});
-
-add_action('woocommerce_order_status_cancelled', function ($order_id) {
-    error_log("Payment cancelled");
-});
-
-add_action('woocommerce_order_status_refunded', function ($order_id) {
-    error_log("Payment refunded");
-});
-
 function ba_upload_cover_handler()
 {
     ba_upload_pdf("ba_cover", "cover");

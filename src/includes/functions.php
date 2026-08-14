@@ -200,8 +200,6 @@ function ba_complete_woocommerce_order($order_id)
     error_log("[" . $order_id . "] " . "ORDER DATA");
     error_log(print_r($order_data, true));
 
-    return;
-
     $print_order = null;
 
     $api = ba_get_printapi_client();
