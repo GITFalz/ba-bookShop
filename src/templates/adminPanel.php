@@ -3,7 +3,6 @@
 
     $clientID = $helper->get_or_update_post_encrypted("clientID", "");
     $secret = $helper->get_or_update_post_encrypted("secret", "");
-    $productID = $helper->get_or_update_post("productID", '');
     $type = $helper->get_or_update_post("environment", "test");
 ?>
 <div class="ba-p-6 ba-flex-col ba-gap-4">
@@ -19,11 +18,7 @@
                     <input name="secret" value="<?=$secret?>">
                 </div>
                 <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
-                    <label>Product ID</label>
-                    <input name="productID" value="<?=empty($productID) ? "boek_hc_a5_sta" : $productID?>">
-                    <?php if (empty($productID)): ?>
-                        <p class="ba-p-0 ba-m-0">(default)</p>
-                    <?php endif; ?>
+                    <label>Product ID (Deprecated - now assigned in product menu)</label>
                 </div>
                 <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
                     <label>Environment</label>

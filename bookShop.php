@@ -2,7 +2,7 @@
 /**
  * Plugin Name: BA Book Shop
  * Description: Book shop for your website, BuroAmstelveen.
- * Version:     1.2.2
+ * Version:     1.3.0
  * Author:      Bjornar Schinkel
  */
 
@@ -12,7 +12,7 @@ if (!defined('ABSPATH')) {
 
 define('BA_BOOKSHOP_PATH', plugin_dir_path(__FILE__));
 define('BA_BOOKSHOP_URL', plugin_dir_url(__FILE__));
-define('BA_BOOKSHOP_VERSION', '1.2.2');
+define('BA_BOOKSHOP_VERSION', '1.3.0');
 define('BA_BOOKSHOP_HELPER', 'ba_bookshop_helper');
 
 if (file_exists(__DIR__ . '/vendor/autoload.php')) {
@@ -21,10 +21,12 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 
 use YahnisElsts\PluginUpdateChecker\v5\PucFactory;
 
-require_once BA_BOOKSHOP_PATH . 'src/admin.php';
+require_once BA_BOOKSHOP_PATH . 'src/includes/functions.php';
 require_once BA_BOOKSHOP_PATH . 'src/includes/helper.php';
 require_once BA_BOOKSHOP_PATH . 'src/includes/encryption.php';
 require_once BA_BOOKSHOP_PATH . 'src/printapi-php/printapi.php';
+
+require_once BA_BOOKSHOP_PATH . 'src/admin.php';
 
 function ba_bookshop_activate() 
 {
