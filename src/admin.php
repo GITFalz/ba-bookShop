@@ -222,4 +222,7 @@ function ba_save_book_meta($post_id) {
     if (isset($_POST['ba_page_count'])) {
         update_post_meta($post_id, 'ba_page_count', intval($_POST['ba_page_count']));
     }
+    if (isset($_POST['ba_product_id'])) {
+        update_post_meta($post_id, 'ba_product_id', sanitize_text_field($_POST['ba_product_id']));
+    }
 }
