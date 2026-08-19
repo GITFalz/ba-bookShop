@@ -124,41 +124,37 @@ function ba_upload_pdf($post, $type)
 
 function ba_get_pdf_info($filepath)
 {
-    $output = [];
+    $content = file_get_contents($filepath);
 
-    exec(
-        'pdfinfo ' . escapeshellarg($filepath),
-        $output
-    );
-
-    $pages  = null;
-    $width  = null;
-    $height = null;
-
-    foreach ($output as $line) {
-
-        if (str_starts_with($line, 'Pages:')) {
-            $pages = (int) trim(
-                substr($line, strlen('Pages:'))
-            );
-        }
-
-        if (str_starts_with($line, 'Page size:')) {
-            if (preg_match(
-                '/Page size:\s*([\d.]+)\s*x\s*([\d.]+)/',
-                $line,
-                $matches
-            )) {
-                $width  = round((float) $matches[1] * 25.4 / 72, 2);
-                $height = round((float) $matches[2] * 25.4 / 72, 2);
-            }
-        }
+    if ($content === false) {
+        return false;
     }
 
+    preg_match_all(
+        '/\/Type\s*\/Page\b/',
+        $content,
+        $pageMatches
+    );
+
+    $pageCount = count($pageMatches[0]);
+
+    preg_match(
+        '/\/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s*\]/',
+        $content,
+        $matches
+    );
+
+    if (!$matches) {
+        return false;
+    }
+
+    $widthPt = abs((float) $matches[3] - (float) $matches[1]);
+    $heightPt = abs((float) $matches[4] - (float) $matches[2]);
+
     return [
-        'pages'  => $pages,
-        'width'  => $width,
-        'height' => $height,
+        'pages'  => $pageCount,
+        'width'  => round($widthPt * 25.4 / 72, 2),
+        'height' => round($heightPt * 25.4 / 72, 2),
     ];
 }
 

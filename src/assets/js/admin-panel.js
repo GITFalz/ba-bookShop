@@ -26,6 +26,8 @@ jQuery(document).ready(function($)
         let data = getUploadedData(c);
         let element = createPDFElement(data);
         coverList.appendChild(element);
+
+        addFile(data);
     });
 
     BAData.contents.forEach(c => { 
