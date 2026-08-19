@@ -103,6 +103,7 @@ function uploadCovers(files) {
 
     files.forEach(file => {
         let data = getDefaultFileData(file);
+        addFile(data);
 
         coverQueue.push(data);
         let element = createPDFElement(data);
@@ -134,6 +135,7 @@ function uploadContents(files) {
 
     files.forEach(file => {
         let data = getDefaultFileData(file);
+        addFile(data);
 
         contentQueue.push(data);
         let element = createPDFElement(data);
@@ -212,7 +214,7 @@ function deletePDF(id, name)
     // placeholder data
     let data = getFileData(id);
 
-    console.log(`Deleting: ${name}`);
+    console.log(`Deleting: ${id}, ${name}`);
     updateState(data, "deleting");
 
     const formData = new FormData();
