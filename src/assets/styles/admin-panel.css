@@ -1,114 +1,134 @@
-#wpcontent {
-    padding-left: 0 !important;
-}
+.ba-flex           { display: flex; }
+.ba-flex-row       { display: flex; flex-direction: row; }
+.ba-flex-col       { display: flex; flex-direction: column; }
+.ba-align-center   { align-items: center; }
+.ba-center         { align-items: center; justify-content: center; }
+.ba-space-between  { justify-content: space-between; }
 
-.ba-gap-0  { gap: 0; }
-.ba-gap-1  { gap: 4px; }
-.ba-gap-2  { gap: 8px; }
-.ba-gap-3  { gap: 12px; }
-.ba-gap-4  { gap: 16px; }
-.ba-gap-5  { gap: 20px; }
-.ba-gap-6  { gap: 24px; }
-.ba-gap-8  { gap: 32px; }
-.ba-gap-10 { gap: 40px; }
-.ba-gap-12 { gap: 48px; }
+.ba-gap-2 { gap: 8px; }
+.ba-gap-4 { gap: 16px; }
 
-.ba-p-0  { padding: 0; }
-.ba-p-1  { padding: 4px; }
 .ba-p-2  { padding: 8px; }
-.ba-p-3  { padding: 12px; }
-.ba-p-4  { padding: 16px; }
-.ba-p-5  { padding: 20px; }
 .ba-p-6  { padding: 24px; }
-.ba-p-8  { padding: 32px; }
-.ba-p-10 { padding: 40px; }
-.ba-p-12 { padding: 48px; }
-
-.ba-px-0  { padding-left: 0;     padding-right: 0; }
-.ba-px-1  { padding-left: 4px;   padding-right: 4px; }
-.ba-px-2  { padding-left: 8px;   padding-right: 8px; }
-.ba-px-4  { padding-left: 16px;  padding-right: 16px; }
-.ba-px-6  { padding-left: 24px;  padding-right: 24px; }
-
-.ba-py-0  { padding-top: 0;      padding-bottom: 0; }
-.ba-py-1  { padding-top: 4px;    padding-bottom: 4px; }
-.ba-py-2  { padding-top: 8px;    padding-bottom: 8px; }
-.ba-py-4  { padding-top: 16px;   padding-bottom: 16px; }
-.ba-py-6  { padding-top: 24px;   padding-bottom: 24px; }
-
+.ba-py-2 { padding-top: 8px; padding-bottom: 8px; }
+.ba-py-6 { padding-top: 24px; padding-bottom: 24px; }
 .ba-m-0  { margin: 0; }
-.ba-m-1  { margin: 4px; }
-.ba-m-2  { margin: 8px; }
-.ba-m-3  { margin: 12px; }
-.ba-m-4  { margin: 16px; }
-.ba-m-5  { margin: 20px; }
-.ba-m-6  { margin: 24px; }
-.ba-m-8  { margin: 32px; }
-.ba-m-10 { margin: 40px; }
-.ba-m-12 { margin: 48px; }
-
-.ba-mx-0  { margin-left: 0;     margin-right: 0; }
-.ba-mx-1  { margin-left: 4px;   margin-right: 4px; }
-.ba-mx-2  { margin-left: 8px;   margin-right: 8px; }
-.ba-mx-4  { margin-left: 16px;  margin-right: 16px; }
-.ba-mx-6  { margin-left: 24px;  margin-right: 24px; }
-
-.ba-my-0  { margin-top: 0;      margin-bottom: 0; }
-.ba-my-1  { margin-top: 4px;    margin-bottom: 4px; }
-.ba-my-2  { margin-top: 8px;    margin-bottom: 8px; }
-.ba-my-4  { margin-top: 16px;   margin-bottom: 16px; }
-.ba-my-6  { margin-top: 24px;   margin-bottom: 24px; }
 
 .ba-text-overflow {
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
-.ba-flex {
-    display: flex;
-}
-
-.ba-flex-col {
-    display: flex;
-    flex-direction: column;
-}
-
-.ba-flex-row {
-    display: flex;
-    flex-direction: row;
-}
-
-.ba-center {
-    align-items: center;
-    justify-content: center;
-}
-
-.ba-space-between {
-    justify-content: space-between;
-}
-
-.ba-align-center {
-    align-items: center;
-}
-
-.ba-justify-center {
-    justify-content: center;
-}
-
-.ba-separator {
-  background-color: #e0e0e0;
-  height: 1px;
+#ba_cover_list,
+#ba_content_list,
+.wide-card,
+.inner-card {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1d2327;
+    font-size: 13px;
 }
 
 .wide-card {
-  border-radius: var(--border-radius-lg, 12px);
-  border: 0.5px solid #e0e0e0;
-  background: #fff;
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 4px;
 }
 
 .inner-card {
-  border-radius: var(--border-radius-lg, 12px);
-  border: 0.5px solid #e0e0e0;
-  background: #f7f7f7;
+    background: #f6f7f7;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+}
+
+.ba-separator {
+    height: 1px;
+    background: #dcdcde;
+    border: none;
+    margin: 0;
+}
+
+.wide-card h1 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #1d2327;
+    text-transform: none;
+    letter-spacing: normal;
+}
+
+form label {
+    min-width: 160px;
+    font-weight: 600;
+    color: #1d2327;
+}
+
+form input[type="text"],
+form input:not([type]),
+form select {
+    flex: 1;
+    max-width: 400px;
+    padding: 6px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    background: #fff;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+form input:focus,
+form select:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}
+
+button,
+form button[type="submit"] {
+    background: #2271b1;
+    border: 1px solid #2271b1;
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 3px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #135e96;
+    border-color: #135e96;
+}
+
+input[type="file"] {
+    font-size: 13px;
+}
+
+.ba-pdf-meta {
+    flex-wrap: wrap;
+}
+
+.ba-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border: 1px solid #dcdcde;
+    border-radius: 3px;
+    background: #fff;
+    color: #646970;
+    font-size: 11px;
+    line-height: 1.6;
+    white-space: nowrap;
+}
+
+button.ba-tag-remove {
+    cursor: pointer;
+    background: #fff;
+    color: #646970;
+    border: 1px solid #dcdcde;
+    font: inherit;
+}
+
+button.ba-tag-remove:hover {
+    background: #fcf0f1;
+    border-color: #d63638;
+    color: #d63638;
 }

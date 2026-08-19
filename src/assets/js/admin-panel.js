@@ -1,3 +1,11 @@
+let fileMap = new Map();
+
+let coverQueue = [];
+let contentQueue = [];
+
+let isUploadingCover = false;
+let isUploadingContent = false;
+
 jQuery(document).ready(function($) 
 {
     document.getElementById('ba_cover_list_upload').addEventListener('change', function (e) {
@@ -9,32 +17,93 @@ jQuery(document).ready(function($)
         const files = Array.from(e.target.files);
         uploadContents(files);
     });
+
+    console.log(BAData.covers);
+    console.log(BAData.contents);
+
+    BAData.covers.forEach(c => {
+        let coverList = document.getElementById("ba_cover_list");
+        let data = getUploadedData(c);
+        let element = createPDFElement(data);
+        coverList.appendChild(element);
+    });
+
+    BAData.contents.forEach(c => { 
+        let contentList = document.getElementById("ba_content_list");
+        let data = getUploadedData(c);
+        let element = createPDFElement(data);
+        contentList.appendChild(element);
+
+        addFile(data);
+    });
 });
 
 function randomId() {
     return Math.random().toString(36).slice(2, 10);
 }
 
-let covers = [];
-let contents = [];
+// General
+function getUploadedData(data) {
+    return {
+        id: data.id,
+        file: null,
+        name: data.name,
+        pages: data.pages,
+        width: data.width,
+        height: data.height,
+        state: 'uploaded'
+    }
+}
 
-let isUploadingCover = false;
-let isUploadingContent = false;
+function getDefaultFileData(file) {
+    return {
+        id: randomId(),
+        file: file,
+        name: file.name,
+        pages: null,
+        width: null,
+        height: null,
+        state: 'pending'
+    }
+}
 
+
+function addFile(data)
+{
+    fileMap.set(data.id, data);
+}
+
+function getFileData(id)
+{
+    return fileMap.get(id);
+}
+
+function updateFileId(oldId, newId)
+{
+    let data = fileMap.get(oldId);
+    if (!data) 
+        return;
+
+    data.id = newId;
+
+    fileMap.delete(oldId);
+    fileMap.set(newId, data);
+}
+
+function removeFile(id)
+{
+    fileMap.delete(id);
+}
 
 // Covers
 function uploadCovers(files) {
     let coverList = document.getElementById("ba_cover_list");
 
     files.forEach(file => {
-        let data = {
-            id: randomId(),
-            file: file,
-            name: file.name
-        };
+        let data = getDefaultFileData(file);
 
-        covers.push(data);
-        let element = generateFile(data.id, data.name, "pending");
+        coverQueue.push(data);
+        let element = createPDFElement(data);
         coverList.appendChild(element);
     });
 
@@ -44,20 +113,17 @@ function uploadCovers(files) {
 }
 
 function uploadCoverHandler() {
-    if (covers.length === 0) {
+    if (coverQueue.length === 0) {
         isUploadingCover = false;
         console.log('All uploads done');
         return;
     }
 
     isUploadingCover = true;
-    const data = covers.shift();
+    const data = coverQueue.shift();
     uploadCover(data);
 }
 
-function uploadCover(data) {
-    uploadPDF(data, "cover", uploadCoverHandler);
-}
 
 
 // Content
@@ -65,14 +131,10 @@ function uploadContents(files) {
     let contentList = document.getElementById("ba_content_list");
 
     files.forEach(file => {
-        let data = {
-            id: randomId(),
-            file: file,
-            name: file.name
-        };
+        let data = getDefaultFileData(file);
 
-        contents.push(data);
-        let element = generateFile(data.id, data.name, "pending");
+        contentQueue.push(data);
+        let element = createPDFElement(data);
         contentList.appendChild(element);
     });
 
@@ -82,28 +144,31 @@ function uploadContents(files) {
 }
 
 function uploadContentHandler() {
-    if (contents.length === 0) {
+    if (contentQueue.length === 0) {
         isUploadingContent = false;
         console.log('All uploads done');
         return;
     }
 
     isUploadingContent = true;
-    const data = contents.shift();
+    const data = contentQueue.shift();
     uploadContent(data);
+}
+
+
+// Uploads
+function uploadCover(data) {
+    uploadPDF(data, "cover", uploadCoverHandler);
 }
 
 function uploadContent(data) {
     uploadPDF(data, "content", uploadContentHandler);
 }
 
-
-
-// Global functions
 function uploadPDF(data, type, uploadCallback) {
     const file = data.file;
     console.log(`Uploading: ${file.name}`);
-    replaceElement(data.id, data.name, "uploading");
+    updateState(data, "uploading");
 
     const formData = new FormData();
     formData.append('action', 'ba_upload_' + type);
@@ -118,17 +183,19 @@ function uploadPDF(data, type, uploadCallback) {
     .then(res => {
         if (!res.success) {
             console.warn(`Failed: ${file.name}`, res.data);
-            replaceElement(data.id, data.name, "fail");
+            updateState(data, "failed");
         } 
         else {
-            replaceElement(data.id, data.name, "success");
-            data.id = res.data.id;
+            data.pages = res.data.pages;
+            data.width = res.data.width;
+            data.height = res.data.height;
+            updateStateAndId(data, "success", res.data.id);
         }
         uploadCallback();
     })
     .catch(err => {
         console.error(`Error on: ${file.name}`, err);
-        replaceElement(data.id, data.name, "fail");
+        updateState(data, "failed");
         uploadCallback();
     });
 }
@@ -140,8 +207,11 @@ function deleteElement(id)
 
 function deletePDF(id, name)
 {
+    // placeholder data
+    let data = getFileData(id);
+
     console.log(`Deleting: ${name}`);
-    replaceElement(id, name, "deleting");
+    updateState(data, "deleting");
 
     const formData = new FormData();
     formData.append('action', 'ba_delete_pdf');
@@ -156,77 +226,79 @@ function deletePDF(id, name)
     .then(res => {
         if (!res.success) {
             console.warn(`Failed: ${name}`, res.data);
-            replaceElement(id, name, "fail");
+            updateState(data, "failed");
         } 
         else {
             document.getElementById("ba_pdf_" + id).remove();
+            removeFile(id);
         }
     })
     .catch(err => {
         console.error(`Error on: ${name}`, err);
-        replaceElement(id, name, "fail");
+        updateState(data, "failed");
     });
 }
 
-function replaceElement(id, name, state)
+function updateState(data, state)
 {
-    let oldElement = document.getElementById("ba_pdf_" + id);
-    let newElement = generateFile(id, name, state);
-    oldElement.replaceWith(newElement);
+    const oldElement = document.getElementById("ba_pdf_" + data.id);
+    data.state = state;
+    if (!oldElement)
+        return;
+
+    oldElement.replaceWith(createPDFElement(data));
 }
 
-function generateFile(id, name, state)
+function updateStateAndId(data, state, id)
 {
-    let element = document.createElement('div');
-    element.id = "ba_pdf_" + id;
-    element.classList.add("inner-card");
-    element.classList.add("ba-p-2");
-    element.innerHTML = `
-        <p class="ba-m-0 ba-text-overflow">${name}</p>
-        <div class="ba-flex-row ba-flex ba-space-between">
-            ${getState(id, name, state)}
-        </div>
-    `;
+    const oldElement = document.getElementById("ba_pdf_" + data.id);
+    data.state = state;
+    data.id = id;
+    if (!oldElement)
+        return;
+
+    oldElement.replaceWith(createPDFElement(data));
+}
+
+function createPDFElement(data)
+{
+    const div = document.createElement('div');
+
+    div.innerHTML = `
+        <div id="ba_pdf_${data.id}" class="inner-card ba-p-2"> 
+            <p class="ba-m-0 ba-text-overflow"></p> 
+            <div class="ba-flex-row ba-flex ba-space-between ba-align-center"> 
+                <div class="ba-flex-row ba-gap-2 ba-pdf-meta"></div>
+                <button class="ba-m-0 ba-tag-remove">Remove</button> 
+            </div> 
+        </div>`;
+
+    const element = div.children[0];
+
+    element.querySelector('.ba-text-overflow').textContent = data.name;
+
+    const meta = element.querySelector('.ba-pdf-meta');
+
+    const addTag = (text) => {
+        const span = document.createElement('span');
+        span.className = 'ba-tag';
+        span.textContent = text;
+        meta.appendChild(span);
+    };
+
+    addTag(data.state);
+
+    if (data.width && data.height) {
+        addTag(`${data.width} × ${data.height}`);
+    }
+
+    if (data.pages) {
+        addTag(`${data.pages} page${data.pages === 1 ? '' : 's'}`);
+    }
+
+    element.querySelector('button').addEventListener('click', () => {
+        deletePDF(data.id, data.name);
+    });
+
     return element;
-}
-
-function getState(id, name, state)
-{
-    if (state == "pending")
-    {
-        return `
-            <p class="ba-m-0">Pending</p>
-        `;
-    }
-    else if (state == "uploading")
-    {
-        return `
-            <p class="ba-m-0">Uploading...</p>
-        `;
-    }
-    else if (state == "fail-delete")
-    {
-        return `
-            <p class="ba-m-0">Deleting...</p>
-            <button class="ba-m-0" onclick="deletePDF(${id}, '${name}')">Remove</button>
-        `;
-    }
-    else if (state == "fail")
-    {
-        return `
-            <p class="ba-m-0">Failed</p>
-            <button class="ba-m-0" onclick="deleteElement(${id})">Remove</button>
-        `;
-    }
-    else if (state == "deleting")
-    {
-        return `
-            <p class="ba-m-0">Deleting...</p>
-        `;
-    }
-    // default uploaded for now is fine, will do error maybe later
-    return `
-        <p class="ba-m-0">Uploaded</p>
-        <button class="ba-m-0" onclick="deletePDF(${id}, '${name}')">Remove</button>
-    `;
 }

@@ -1,0 +1,35 @@
+.ba-fields p {
+    margin: 0 0 14px;
+}
+ 
+.ba-fields p:last-child {
+    margin-bottom: 0;
+}
+ 
+.ba-fields label {
+    display: block;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #1d2327;
+    font-size: 13px;
+}
+ 
+.ba-fields select,
+.ba-fields input[type="text"],
+.ba-fields input[type="number"] {
+    width: 100%;
+    max-width: 400px;
+    padding: 6px 8px;
+    border: 1px solid #8c8f94;
+    border-radius: 3px;
+    background: #fff;
+    font-size: 13px;
+    line-height: 1.4;
+}
+ 
+.ba-fields select:focus,
+.ba-fields input:focus {
+    border-color: #2271b1;
+    box-shadow: 0 0 0 1px #2271b1;
+    outline: none;
+}

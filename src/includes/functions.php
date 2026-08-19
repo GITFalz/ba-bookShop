@@ -46,11 +46,26 @@ function ba_get_pdfs($type) {
         $filepath = get_attached_file($attachment->ID);
         $filesize = file_exists($filepath) ? filesize($filepath) : 0;
 
+        $pages = get_post_meta($attachment->ID, 'ba_page_count', true);
+
+        if ($pages === '') {
+            $pdfInfo = ba_get_pdf_info($filepath);
+
+            update_post_meta($attachment->ID, 'ba_file_size', $filesize);
+            update_post_meta($attachment->ID, 'ba_page_count', $pdfInfo['pages']);
+            update_post_meta($attachment->ID, 'ba_width', $pdfInfo['width']);
+            update_post_meta($attachment->ID, 'ba_height', $pdfInfo['height']);
+        }
+
         return [
             'id'       => $attachment->ID,
             'name'     => $attachment->post_title,
             'url'      => wp_get_attachment_url($attachment->ID),
             'size_str' => size_format($filesize),
+            'pages'    => get_post_meta($attachment->ID, 'ba_page_count', true),
+            'width'    => get_post_meta($attachment->ID, 'ba_width', true),
+            'height'   => get_post_meta($attachment->ID, 'ba_height', true),
+            'type'     => get_post_meta($attachment->ID, 'ba_type', true),
         ];
     }, $attachments);
 }
@@ -82,20 +97,89 @@ function ba_upload_pdf($post, $type)
         wp_send_json_error(['message' => $attachment_id->get_error_message()]);
     }
 
-    update_post_meta($attachment_id, 'ba_type', $type);
-
     $url      = wp_get_attachment_url($attachment_id);
     $filepath = get_attached_file($attachment_id);
     $filesize = filesize($filepath);
 
+    $pdfInfo = ba_get_pdf_info($filepath);
+
+    update_post_meta($attachment_id, 'ba_type', $type);
+    update_post_meta($attachment_id, 'ba_file_size', $filesize);
+    update_post_meta($attachment_id, 'ba_page_count', $pdfInfo['pages']);
+    update_post_meta($attachment_id, 'ba_width', $pdfInfo['width']);
+    update_post_meta($attachment_id, 'ba_height', $pdfInfo['height']);
+
     wp_send_json_success([
-        'id'       => $attachment_id,
-        'name'     => $file['name'],
-        'url'      => $url,
-        'size'     => $filesize,
-        'size_str' => size_format($filesize),
-        'type'     => $type,
+        'id'         => $attachment_id,
+        'name'       => $file['name'],
+        'url'        => $url,
+        'size'       => $filesize,
+        'size_str'   => size_format($filesize),
+        'pages'      => $pdfInfo['pages'],
+        'width'      => $pdfInfo['width'],
+        'height'     => $pdfInfo['height'],
+        'type'       => $type,
     ]);
+}
+
+function ba_get_pdf_info($filepath)
+{
+    $output = [];
+
+    exec(
+        'pdfinfo ' . escapeshellarg($filepath),
+        $output
+    );
+
+    $pages  = null;
+    $width  = null;
+    $height = null;
+
+    foreach ($output as $line) {
+
+        if (str_starts_with($line, 'Pages:')) {
+            $pages = (int) trim(
+                substr($line, strlen('Pages:'))
+            );
+        }
+
+        if (str_starts_with($line, 'Page size:')) {
+            if (preg_match(
+                '/Page size:\s*([\d.]+)\s*x\s*([\d.]+)/',
+                $line,
+                $matches
+            )) {
+                $width  = round((float) $matches[1] * 25.4 / 72, 2);
+                $height = round((float) $matches[2] * 25.4 / 72, 2);
+            }
+        }
+    }
+
+    return [
+        'pages'  => $pages,
+        'width'  => $width,
+        'height' => $height,
+    ];
+}
+
+function ba_get_pdf_data($attachment_id)
+{
+    $filepath = get_attached_file($attachment_id);
+    $filesize = file_exists($filepath)
+        ? filesize($filepath)
+        : 0;
+
+    return [
+        'id'         => $attachment_id,
+        'name'       => get_the_title($attachment_id),
+        'url'        => wp_get_attachment_url($attachment_id),
+        'size'       => $filesize,
+        'size_str'   => size_format($filesize),
+        'pages'      => get_post_meta($attachment_id, 'ba_page_count', true),
+        'width'      => get_post_meta($attachment_id, 'ba_width', true),
+        'height'     => get_post_meta($attachment_id, 'ba_height', true),
+        'type'       => get_post_meta($attachment_id, 'ba_type', true),
+    ];
 }
 
 
@@ -182,60 +266,70 @@ add_action('wp_ajax_ba_delete_pdf', 'ba_delete_pdf_handler');
 // Woocommerce
 function ba_complete_woocommerce_order($order_id)
 {
+    $log = '[BA Print API][' . $order_id . ']';
+
     $order = wc_get_order($order_id);
-    if ($order->get_meta('ba_printapi_order_id')) {
-        error_log("[" . $order_id . "] " . "ORDER ALREADY SENT, SKIPPING");
-        return;
+
+    if (!$order) 
+    { 
+        error_log("$log Order not found."); 
+        return; 
     }
 
-    error_log("[" . $order_id . "] " . "SENDING ORDER");
+    if ($order->get_meta('ba_printapi_order_id')) 
+    { 
+        error_log("$log Order already sent, skipping."); 
+        return; 
+    }
+    
+    error_log("$log Sending order.");
 
     $order_data = ba_get_order_data($order_id);
-    
-    if (empty($order_data)) {
-        error_log("[" . $order_id . "] " . "ORDER DATA EMPTY, ABORTING");
-        return;
-    }
 
-    error_log("[" . $order_id . "] " . "ORDER DATA");
-    error_log(print_r($order_data, true));
-
-    $print_order = null;
+    if (empty($order_data)) { error_log("$log Order data is empty, aborting."); return; }
 
     $api = ba_get_printapi_client();
 
-    if (!$api) {
-        error_log("[" . $order_id . "] " . "PRINTAPI CLIENT FAILED TO INIT");
+    if (!$api) 
+    {
+        error_log("$log Failed to initialize Print API client.");
         return;
     }
 
     try 
     {
         $print_order = $api->post('/orders', $order_data);
-        error_log("[" . $order_id . "] " . "ORDER SENT");
-    }
-    catch (Exception $ex)
+    } 
+    catch (Exception $ex) 
     {
-        error_log("[" . $order_id . "] " . "AN ERROR OCCURED");
-        error_log($ex->getMessage());
-    }
+        error_log("$log API request failed: " . $ex->getMessage());
 
-    if (isset($print_order)) {
-        $order = wc_get_order($order_id);
-        $order->update_meta_data('ba_printapi_order_id', $print_order->id);
-        $order->update_meta_data('ba_printapi_status', $print_order->status);
-        $order->save();
-
-        $order->add_order_note('Print API order created: ' . $print_order->id . ' - status: ' . $print_order->status);
-        
-        error_log("[" . $order_id . "] " . "ORDER STATUS UPDATED");
-    } else {
         $order->update_meta_data('ba_printapi_failed', true);
         $order->save();
-        $order->add_order_note('Print API order FAILED. Manual review needed.');
-        error_log("[" . $order_id . "] " . 'Print API order failed: ' . print_r($order_data, true));
+
+        $order->add_order_note('Print API order failed. Manual review needed.');
+
+        return;
     }
 
-    error_log("[" . $order_id . "] " . "PRINT ORDER");
-    error_log(print_r($print_order, true));
+    if (empty($print_order) || empty($print_order->id) || !isset($print_order->status)) 
+    {
+        error_log("$log API returned an invalid response.");
+
+        $order->update_meta_data('ba_printapi_failed', true);
+        $order->save();
+
+        $order->add_order_note('Print API order failed: invalid API response. Manual review needed.');
+
+        return;
+    }
+
+    $order->update_meta_data('ba_printapi_order_id',$print_order->id);
+    $order->update_meta_data('ba_printapi_status',$print_order->status);
+    $order->delete_meta_data('ba_printapi_failed');
+
+    $order->save();
+    $order->add_order_note('Print API order created: ' . $print_order->id . ' - status: ' . $print_order->status);
+
+    error_log("$log Order successfully sent. " . "Print API ID: {$print_order->id}, " . "status: {$print_order->status}");
 }

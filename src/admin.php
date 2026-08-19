@@ -42,9 +42,14 @@ function ba_bookshop_admin_panel()
         true
     );
 
+    $covers = ba_get_covers();
+    $contents = ba_get_contents();
+
     wp_localize_script('ba-bookShop-admin-js', 'BAData', [
         'ajaxurl' => admin_url('admin-ajax.php'),
-        'nonce' => wp_create_nonce('ba_upload_handler')
+        'nonce' => wp_create_nonce('ba_upload_handler'),
+        'covers' => $covers,
+        'contents' => $contents
     ]);
 
     include BA_BOOKSHOP_PATH . 'src/templates/adminPanel.php';
@@ -158,6 +163,13 @@ function ba_add_book_meta_box() {
 add_action('add_meta_boxes', 'ba_add_book_meta_box');
 
 function ba_book_meta_box_html($post) {
+    wp_enqueue_style( 
+        'ba-bookShop-fields-css', 
+        BA_BOOKSHOP_URL . '/src/assets/styles/admin-fields.css',
+        array(),
+        '1.1'
+    );
+
     $covers   = ba_get_covers();
     $contents = ba_get_contents(); // your equivalent for content PDFs
 
@@ -169,39 +181,43 @@ function ba_book_meta_box_html($post) {
     wp_nonce_field('ba_book_files', 'ba_book_files_nonce');
     ?>
 
-    <p>
-        <label>Cover PDF</label><br>
-        <select name="ba_book_cover">
-            <option value="">— Select a cover —</option>
-            <?php foreach ($covers as $cover) : ?>
-                <option value="<?= $cover['id'] ?>" <?= selected($selected_cover, $cover['id'], false) ?>>
-                    <?= esc_html($cover['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </p>
+    <div class="ba-fields">
 
-    <p>
-        <label>Content PDF</label><br>
-        <select name="ba_book_content">
-            <option value="">— Select content —</option>
-            <?php foreach ($contents as $content) : ?>
-                <option value="<?= $content['id'] ?>" <?= selected($selected_content, $content['id'], false) ?>>
-                    <?= esc_html($content['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </p>
+        <p>
+            <label>Cover PDF</label>
+            <select name="ba_book_cover">
+                <option value="">--- Select a cover ---</option>
+                <?php foreach ($covers as $cover) : ?>
+                    <option value="<?= $cover['id'] ?>" <?= selected($selected_cover, $cover['id'], false) ?>>
+                        <?= esc_html($cover['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </p>
 
-    <p>
-        <label>Page count</label>
-        <input type="number" name="ba_page_count" value="<?=$page_count?>">
-    </p>
+        <p>
+            <label>Content PDF</label>
+            <select name="ba_book_content">
+                <option value="">--- Select content ---</option>
+                <?php foreach ($contents as $content) : ?>
+                    <option value="<?= $content['id'] ?>" <?= selected($selected_content, $content['id'], false) ?>>
+                        <?= esc_html($content['name']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </p>
 
-    <p>
-        <label>Product ID (found in Print API product list)</label>
-        <input type="text" name="ba_product_id" value="<?=$product_id?>">
-    </p>
+        <p>
+            <label>Page count</label>
+            <input type="number" name="ba_page_count" value="<?=$page_count?>">
+        </p>
+
+        <p>
+            <label>Product ID (found in Print API product list)</label>
+            <input type="text" name="ba_product_id" value="<?=$product_id?>">
+        </p>
+    
+    </div>
 
     <?php
 }
