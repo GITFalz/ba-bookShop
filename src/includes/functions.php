@@ -124,38 +124,45 @@ function ba_upload_pdf($post, $type)
 
 function ba_get_pdf_info($filepath)
 {
-    $content = file_get_contents($filepath);
+    try {
+        $parser = new \Smalot\PdfParser\Parser();
+        $pdf    = $parser->parseFile($filepath);
+        
+        $pages     = $pdf->getPages();
+        $pageCount = count($pages);
+        
+        if ($pageCount === 0) {
+            throw new \Exception("No pages found");
+        }
 
-    if ($content === false) {
-        return false;
+        $firstPage = $pages[0];
+        $details   = $firstPage->getDetails();
+        
+        if (!isset($details['MediaBox'])) {
+            throw new \Exception("MediaBox missing");
+        }
+
+        $x1 = (float) $details['MediaBox'][0];
+        $y1 = (float) $details['MediaBox'][1];
+        $x2 = (float) $details['MediaBox'][2];
+        $y2 = (float) $details['MediaBox'][3];
+        
+        $widthPt  = abs($x2 - $x1);
+        $heightPt = abs($y2 - $y1);
+
+        return [
+            'pages'  => $pageCount,
+            'width'  => round($widthPt * 25.4 / 72, 2),
+            'height' => round($heightPt * 25.4 / 72, 2),
+        ];
+
+    } catch (\Throwable $e) {
+        return [
+            'pages'  => '',
+            'width'  => '',
+            'height' => '',
+        ];
     }
-
-    preg_match_all(
-        '/\/Type\s*\/Page\b/',
-        $content,
-        $pageMatches
-    );
-
-    $pageCount = count($pageMatches[0]);
-
-    preg_match(
-        '/\/MediaBox\s*\[\s*([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s+([\d.-]+)\s*\]/',
-        $content,
-        $matches
-    );
-
-    if (!$matches) {
-        return false;
-    }
-
-    $widthPt = abs((float) $matches[3] - (float) $matches[1]);
-    $heightPt = abs((float) $matches[4] - (float) $matches[2]);
-
-    return [
-        'pages'  => $pageCount,
-        'width'  => round($widthPt * 25.4 / 72, 2),
-        'height' => round($heightPt * 25.4 / 72, 2),
-    ];
 }
 
 function ba_get_pdf_data($attachment_id)
