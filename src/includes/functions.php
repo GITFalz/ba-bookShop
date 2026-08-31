@@ -202,10 +202,10 @@ function ba_get_order_data($order_id) {
         $page_count = get_post_meta($product_id, 'ba_page_count', true);
         $productID = get_post_meta($product_id, 'ba_product_id', true);
 
-        $cover_url   = wp_get_attachment_url($cover_id);
+        $cover_url   = $cover_id ? wp_get_attachment_url($cover_id) : null;
         $content_url = wp_get_attachment_url($content_id);
 
-        if (!$cover_url || !$content_url) {
+        if (!$content_url) {
             error_log("[" . $order_id . "] Missing file for product " . $product_id);
             return [];
         }
