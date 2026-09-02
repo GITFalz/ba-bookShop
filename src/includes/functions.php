@@ -282,6 +282,12 @@ function ba_complete_woocommerce_order($order_id)
     if ($order->get_meta('ba_printapi_order_id')) 
     { 
         error_log("$log Order already sent, skipping."); 
+
+        $order->update_meta_data('ba_printapi_failed', true);
+        $order->save();
+
+        $order->add_order_note('Print API order already sent.');
+
         return; 
     }
     
@@ -289,13 +295,29 @@ function ba_complete_woocommerce_order($order_id)
 
     $order_data = ba_get_order_data($order_id);
 
-    if (empty($order_data)) { error_log("$log Order data is empty, aborting."); return; }
+    if (empty($order_data)) 
+    { 
+        error_log("$log Order data is empty, aborting."); 
+
+        $order->update_meta_data('ba_printapi_failed', true);
+        $order->save();
+
+        $order->add_order_note('Print API order data is empty.');
+
+        return; 
+    }
 
     $api = ba_get_printapi_client();
 
     if (!$api) 
     {
         error_log("$log Failed to initialize Print API client.");
+
+        $order->update_meta_data('ba_printapi_failed', true);
+        $order->save();
+
+        $order->add_order_note('Failed to initialize Print API client.');
+
         return;
     }
 
@@ -327,9 +349,9 @@ function ba_complete_woocommerce_order($order_id)
         return;
     }
 
-    $order->update_meta_data('ba_printapi_order_id',$print_order->id);
-    $order->update_meta_data('ba_printapi_status',$print_order->status);
-    $order->delete_meta_data('ba_printapi_failed');
+    $order->update_meta_data('ba_printapi_order_id', $print_order->id);
+    $order->update_meta_data('ba_printapi_status', $print_order->status);
+    $order->update_meta_data('ba_printapi_failed', false);
 
     $order->save();
     $order->add_order_note('Print API order created: ' . $print_order->id . ' - status: ' . $print_order->status);
