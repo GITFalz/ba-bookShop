@@ -119,7 +119,7 @@ function ba_printapi_metabox($post_or_order) {
         return;
     }
     else if (!$print_order_id) {
-        echo $print_order_failed;
+        echo '<p>' . ($print_order_failed ? 'failed' : 'none') . '</p>';
         echo '<p>No Print API order found.</p>';
         return;
     }
