@@ -118,15 +118,20 @@ function ba_printapi_metabox($post_or_order) {
 
         return;
     }
-    else if (!$print_order_id) {
-        echo '<p>' . ($print_order_failed ? 'failed' : 'none') . '</p>';
+    
+    if (!$print_order_id) {
         echo '<p>No Print API order found.</p>';
         return;
     }
 
     $api = ba_get_printapi_client();
-    $result = $api->get('/orders/' . $print_order_id);
+    if (!$api)
+    {
+        echo '<p style="color:red">Print API client unavailable.</p>';
+        return;
+    }
 
+    $result = $api->get('/orders/' . $print_order_id);
     if (!$result) {
         echo '<p style="color:red">Failed to fetch Print API order.</p>';
         return;
