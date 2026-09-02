@@ -191,6 +191,13 @@ function ba_get_pdf_data($attachment_id)
 function ba_get_order_data($order_id) {
     $order = wc_get_order($order_id);
 
+    if (!$order) {
+        return [
+            'data' => null,
+            'error' => 'WooCommerce order could not be loaded.',
+        ];
+    }
+
     $items = [];
 
     foreach ($order->get_items() as $item) {
@@ -203,11 +210,36 @@ function ba_get_order_data($order_id) {
         $productID = get_post_meta($product_id, 'ba_product_id', true);
 
         $cover_url   = $cover_id ? wp_get_attachment_url($cover_id) : null;
-        $content_url = wp_get_attachment_url($content_id);
+        $content_url = $content_id ? wp_get_attachment_url($content_id) : null;
+        
 
         if (!$content_url) {
-            error_log("[" . $order_id . "] Missing file for product " . $product_id);
-            return [];
+            $message = sprintf(
+                'Missing content file for product %d (attachment ID: %s).',
+                $product_id,
+                $content_id ?: 'none'
+            );
+
+            error_log('[' . $order_id . '] ' . $message);
+
+            return [
+                'data' => null,
+                'error' => $message,
+            ];
+        }
+
+        if (!$productID) {
+            $message = sprintf(
+                'Missing Print API product ID for WooCommerce product %d.',
+                $product_id
+            );
+
+            error_log('[' . $order_id . '] ' . $message);
+
+            return [
+                'data' => null,
+                'error' => $message,
+            ];
         }
 
         $items[] = [
@@ -221,24 +253,38 @@ function ba_get_order_data($order_id) {
         ];
     }
 
+    if (empty($items)) {
+        $message = 'Order contains no items.';
+
+        error_log('[' . $order_id . '] ' . $message);
+
+        return [
+            'data' => null,
+            'error' => $message,
+        ];
+    }
+
     $shipping = $order->get_address('shipping');
     $billing  = $order->get_address('billing');
 
     $address_source = !empty($shipping['address_1']) ? $shipping : $billing;
 
     return [
-        'email' => $order->get_billing_email(),
-        'items' => $items,
-        'shipping' => [
-            'address' => [
-                'name' => trim(($address_source['first_name'] ?? '') . ' ' . ($address_source['last_name'] ?? '')),
-                'line1' => $address_source['address_1'] ?? '',
-                'line2' => $address_source['address_2'] ?? '',
-                'postCode' => $address_source['postcode'] ?? '',
-                'city' => $address_source['city'] ?? '',
-                'country' => $address_source['country'] ?? '',
+        'data' => [
+            'email' => $order->get_billing_email(),
+            'items' => $items,
+            'shipping' => [
+                'address' => [
+                    'name' => trim(($address_source['first_name'] ?? '') . ' ' . ($address_source['last_name'] ?? '')),
+                    'line1' => $address_source['address_1'] ?? '',
+                    'line2' => $address_source['address_2'] ?? '',
+                    'postCode' => $address_source['postcode'] ?? '',
+                    'city' => $address_source['city'] ?? '',
+                    'country' => $address_source['country'] ?? '',
+                ]
             ]
-        ]
+        ],
+        'error' => null,
     ];
 }
 
@@ -293,19 +339,22 @@ function ba_complete_woocommerce_order($order_id)
     
     error_log("$log Sending order.");
 
-    $order_data = ba_get_order_data($order_id);
+    $order_result = ba_get_order_data($order_id);
 
-    if (empty($order_data)) 
-    { 
-        error_log("$log Order data is empty, aborting."); 
+    if (!$order_result['data']) {
+        $message = 'Print API order data failed: ' . $order_result['error'];
+
+        error_log("$log $message");
 
         $order->update_meta_data('ba_printapi_failed', true);
         $order->save();
 
-        $order->add_order_note('Print API order data is empty.');
+        $order->add_order_note($message);
 
-        return; 
+        return;
     }
+
+    $order_data = $order_result['data'];
 
     $api = ba_get_printapi_client();
 
