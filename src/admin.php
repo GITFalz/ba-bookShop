@@ -69,8 +69,59 @@ add_action('add_meta_boxes', function() {
 function ba_printapi_metabox($post_or_order) {
     $order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order($post_or_order->ID);
     $print_order_id = $order->get_meta('ba_printapi_order_id');
+    $print_order_failed = $order->get_meta('ba_printapi_failed');
+    $print_order_notes = $order->get_meta('ba_printapi_failed');
 
-    if (!$print_order_id) {
+    
+
+    if ($print_order_failed) 
+    {
+        $notes = wc_get_order_notes([
+            'order_id' => $order->get_id(),
+        ]);
+
+        echo '<div style="
+            background: #fff1f0;
+            border: 1px solid #d63638;
+            border-left: 4px solid #d63638;
+            padding: 12px 14px;
+            margin: 10px 0;
+        ">';
+
+        echo '<strong style="color: #d63638;">Print API order failed</strong>';
+
+        if (!empty($notes)) {
+            echo '<div style="margin-top: 10px;">';
+
+            foreach ($notes as $note) {
+                echo '<div style="
+                    background: #fff;
+                    border: 1px solid #ddd;
+                    padding: 8px 10px;
+                    margin-bottom: 6px;
+                ">';
+
+                echo '<div>' . esc_html($note->content) . '</div>';
+
+                if (!empty($note->date_created)) {
+                    echo '<small style="color: #666;">'
+                        . esc_html($note->date_created->date_i18n('Y-m-d H:i:s'))
+                        . '</small>';
+                }
+
+                echo '</div>';
+            }
+
+            echo '</div>';
+        } else {
+            echo '<p style="margin-bottom: 0;">No order notes found.</p>';
+        }
+
+        echo '</div>';
+
+        return;
+    }
+    else if (!$print_order_id) {
         echo '<p>No Print API order found.</p>';
         return;
     }
