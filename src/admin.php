@@ -137,9 +137,26 @@ function ba_printapi_metabox($post_or_order) {
         return;
     }
 
-    $result = $api->get('/orders/' . $print_order_id);
-    if (!$result) {
-        echo '<p style="color:red">Failed to fetch Print API order.</p>';
+    try {
+        $result = $api->get('/orders/' . $print_order_id);
+
+        if (!$result) {
+            error_log("[BA Print API][$print_order_id] API returned empty result.");
+            echo '<p style="color:red">Failed to fetch Print API order. Check logs.</p>';
+            return;
+        }
+    }
+    catch (Throwable $e) {
+        error_log(
+            "[BA Print API][$print_order_id] GET /orders failed: "
+            . get_class($e)
+            . ': ' . $e->getMessage()
+            . " | File: {$e->getFile()}:{$e->getLine()}"
+        );
+
+        error_log("[BA Print API][$print_order_id] Trace: " . $e->getTraceAsString());
+
+        echo '<p style="color:red">Failed to fetch Print API order. Check logs.</p>';
         return;
     }
 
