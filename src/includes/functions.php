@@ -5,13 +5,21 @@ function ba_get_printapi_client()
 {
     $helper = new BA_Helper(BA_BOOKSHOP_HELPER);
 
-    $clientID = $helper->get_decrypted("clientID");
-    $secret = $helper->get_decrypted("secret");
+    $type = $helper->get("environment", "test");
+
+    if ($type == "live")
+    {
+        $clientID = $helper->get_decrypted("clientID");
+        $secret = $helper->get_decrypted("secret");
+    }
+    else
+    {
+        $clientID = $helper->get_decrypted("test_clientID");
+        $secret = $helper->get_decrypted("test_secret");
+    }
 
     if (!$clientID || !$secret)
         return false;
-
-    $type = $helper->get("environment", "test");
 
     $client = PrintApi::authenticate($clientID, $secret, $type);
     return $client;

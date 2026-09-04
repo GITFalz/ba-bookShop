@@ -3,6 +3,10 @@
 
     $clientID = $helper->get_or_update_post_encrypted("clientID", "");
     $secret = $helper->get_or_update_post_encrypted("secret", "");
+
+    $testClientID = $helper->get_or_update_post_encrypted("test_clientID", "");
+    $testSecret = $helper->get_or_update_post_encrypted("test_secret", "");
+
     $type = $helper->get_or_update_post("environment", "test");
 
     /*
@@ -33,12 +37,20 @@
         <form method="post"class="ba-m-0">
             <div class="ba-flex-col">
                 <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
-                    <label>Client ID</label>
+                    <label>Live Client ID</label>
                     <input name="clientID" value="<?=$clientID?>">
                 </div>
                 <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
-                    <label>Secret</label>
+                    <label>Live Secret</label>
                     <input name="secret" value="<?=$secret?>">
+                </div>
+                <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
+                    <label>Test Client ID</label>
+                    <input name="test_clientID" value="<?=$testClientID?>">
+                </div>
+                <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
+                    <label>Test Secret</label>
+                    <input name="test_secret" value="<?=$testSecret?>">
                 </div>
                 <div class="ba-p-2 ba-flex-row ba-gap-2 ba-align-center">
                     <label>Product ID (Deprecated - now assigned in product menu)</label>
