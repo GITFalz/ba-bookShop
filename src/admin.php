@@ -68,6 +68,12 @@ add_action('add_meta_boxes', function() {
 
 function ba_printapi_metabox($post_or_order) {
     $order = $post_or_order instanceof WC_Order ? $post_or_order : wc_get_order($post_or_order->ID);
+
+    if (!$order instanceof WC_Order) {
+        echo '<p style="color:red">Invalid WooCommerce order.</p>';
+        return;
+    }
+
     $print_order_id = $order->get_meta('ba_printapi_order_id');
     $print_order_failed = $order->get_meta('ba_printapi_failed');
 
