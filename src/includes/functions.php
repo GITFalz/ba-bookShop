@@ -80,6 +80,10 @@ function ba_get_pdfs($type) {
 
 function ba_upload_pdf($post, $type)
 {
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+    
     // Force JSON response headers early
     header('Content-Type: application/json; charset=utf-8');
 
