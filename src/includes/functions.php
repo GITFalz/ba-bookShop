@@ -80,32 +80,41 @@ function ba_get_pdfs($type) {
 
 function ba_upload_pdf($post, $type)
 {
+    // Force JSON response headers early
+    header('Content-Type: application/json; charset=utf-8');
+
     if (!check_ajax_referer('ba_upload_handler', 'ba_nonce', false)) {
         wp_send_json_error(['message' => 'Invalid nonce']);
     }
 
-    if (empty($_FILES[$post])) {
-        wp_send_json_error(['message' => 'No file uploaded']);
+    // Check if the file even arrived
+    if (empty($_FILES[$post]) || !isset($_FILES[$post]['error'])) {
+        wp_send_json_error([
+            'message' => 'No file received. Possible causes: file too large for server (upload_max_filesize / post_max_size) or request was blocked.',
+            'error_code' => 'no_file'
+        ]);
     }
 
     $file = $_FILES[$post];
 
-    // --- Explicit size / upload error handling ---
+    // Explicit upload error handling
     if ($file['error'] !== UPLOAD_ERR_OK) {
-        $error_messages = [
-            UPLOAD_ERR_INI_SIZE   => 'File is too large (exceeds server upload_max_filesize)',
-            UPLOAD_ERR_FORM_SIZE  => 'File is too large (exceeds form MAX_FILE_SIZE)',
+        $messages = [
+            UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload_max_filesize limit',
+            UPLOAD_ERR_FORM_SIZE  => 'File exceeds form MAX_FILE_SIZE limit',
             UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded',
             UPLOAD_ERR_NO_FILE    => 'No file was uploaded',
-            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder on server',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
             UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
-            UPLOAD_ERR_EXTENSION  => 'A PHP extension stopped the file upload',
+            UPLOAD_ERR_EXTENSION  => 'Upload blocked by a PHP extension',
         ];
 
-        $message = $error_messages[$file['error']] ?? 'Unknown upload error (code: ' . $file['error'] . ')';
+        $msg = $messages[$file['error']] ?? 'Unknown upload error (code ' . $file['error'] . ')';
+
         wp_send_json_error([
-            'message' => $message,
-            'error_code' => $file['error']
+            'message'    => $msg,
+            'error_code' => $file['error'],
+            'php_error'  => $file['error']
         ]);
     }
 
