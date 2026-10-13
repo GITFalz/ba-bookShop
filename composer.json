@@ -13,6 +13,6 @@
     ],
     "require": {
         "yahnis-elsts/plugin-update-checker": "^5.6",
-        "smalot/pdfparser": "^2.12"
+        "setasign/fpdi": "^2.6"
     }
 }

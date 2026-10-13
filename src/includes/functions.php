@@ -80,18 +80,10 @@ function ba_get_pdfs($type) {
 
 function ba_upload_pdf($post, $type)
 {
-    ini_set('display_errors', 1);
-    ini_set('display_startup_errors', 1);
-    error_reporting(E_ALL);
-    
-    // Force JSON response headers early
-    header('Content-Type: application/json; charset=utf-8');
-
     if (!check_ajax_referer('ba_upload_handler', 'ba_nonce', false)) {
         wp_send_json_error(['message' => 'Invalid nonce']);
     }
 
-    // Check if the file even arrived
     if (empty($_FILES[$post]) || !isset($_FILES[$post]['error'])) {
         wp_send_json_error([
             'message' => 'No file received. Possible causes: file too large for server (upload_max_filesize / post_max_size) or request was blocked.',
@@ -101,7 +93,6 @@ function ba_upload_pdf($post, $type)
 
     $file = $_FILES[$post];
 
-    // Explicit upload error handling
     if ($file['error'] !== UPLOAD_ERR_OK) {
         $messages = [
             UPLOAD_ERR_INI_SIZE   => 'File exceeds server upload_max_filesize limit',
@@ -168,45 +159,29 @@ function ba_upload_pdf($post, $type)
 
 function ba_get_pdf_info($filepath)
 {
+    $result = [
+        'pages'  => '',
+        'width'  => '',
+        'height' => '',
+    ];
+
     try {
-        $parser = new \Smalot\PdfParser\Parser();
-        $pdf    = $parser->parseFile($filepath);
-        
-        $pages     = $pdf->getPages();
-        $pageCount = count($pages);
-        
-        if ($pageCount === 0) {
-            throw new \Exception("No pages found");
-        }
+        $pdf = new \setasign\Fpdi\Fpdi();
+        $pageCount = $pdf->setSourceFile($filepath);
 
-        $firstPage = $pages[0];
-        $details   = $firstPage->getDetails();
-        
-        if (!isset($details['MediaBox'])) {
-            throw new \Exception("MediaBox missing");
-        }
+        // Get size from first page
+        $tplId = $pdf->importPage(1);
+        $size  = $pdf->getTemplateSize($tplId);
 
-        $x1 = (float) $details['MediaBox'][0];
-        $y1 = (float) $details['MediaBox'][1];
-        $x2 = (float) $details['MediaBox'][2];
-        $y2 = (float) $details['MediaBox'][3];
-        
-        $widthPt  = abs($x2 - $x1);
-        $heightPt = abs($y2 - $y1);
+        $result['pages']  = $pageCount;
+        $result['width']  = isset($size['width'])  ? round($size['width'], 2)  : '';
+        $result['height'] = isset($size['height']) ? round($size['height'], 2) : '';
 
-        return [
-            'pages'  => $pageCount,
-            'width'  => round($widthPt * 25.4 / 72, 2),
-            'height' => round($heightPt * 25.4 / 72, 2),
-        ];
-
-    } catch (\Throwable $e) {
-        return [
-            'pages'  => '',
-            'width'  => '',
-            'height' => '',
-        ];
+    } catch (Throwable $e) {
+        // fail silently
     }
+
+    return $result;
 }
 
 function ba_get_pdf_data($attachment_id)

@@ -7,14 +7,13 @@ namespace Composer\Autoload;
 class ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9
 {
     public static $files = array (
-        '0e6d7bf4a5811bfa5cf40c5ccd6fae6a' => __DIR__ . '/..' . '/symfony/polyfill-mbstring/bootstrap.php',
         'bc0af1337b39f0d750e835f5263eb646' => __DIR__ . '/..' . '/yahnis-elsts/plugin-update-checker/load-v5p7.php',
     );
 
     public static $prefixLengthsPsr4 = array (
-        'S' =>
+        's' =>
         array (
-            'Symfony\\Polyfill\\Mbstring\\' => 26,
+            'setasign\\Fpdi\\' => 14,
         ),
         'B' =>
         array (
@@ -23,23 +22,13 @@ class ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9
     );
 
     public static $prefixDirsPsr4 = array (
-        'Symfony\\Polyfill\\Mbstring\\' =>
+        'setasign\\Fpdi\\' =>
         array (
-            0 => __DIR__ . '/..' . '/symfony/polyfill-mbstring',
+            0 => __DIR__ . '/..' . '/setasign/fpdi/src',
         ),
         'Bjorn\\BaBookShop\\' =>
         array (
             0 => __DIR__ . '/../..' . '/src',
-        ),
-    );
-
-    public static $prefixesPsr0 = array (
-        'S' =>
-        array (
-            'Smalot\\PdfParser\\' =>
-            array (
-                0 => __DIR__ . '/..' . '/smalot/pdfparser/src',
-            ),
         ),
     );
 
@@ -52,7 +41,6 @@ class ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9::$prefixDirsPsr4;
-            $loader->prefixesPsr0 = ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit5698671b1bf2b3dd37d0359df3c296c9::$classMap;
 
         }, null, ClassLoader::class);
