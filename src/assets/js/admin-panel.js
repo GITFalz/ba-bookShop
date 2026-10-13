@@ -190,6 +190,7 @@ function uploadPDF(data, type, uploadCallback) {
             updateState(data, "failed");
         } 
         else {
+            console.error(res.data.message);
             data.pages = res.data.pages;
             data.width = res.data.width;
             data.height = res.data.height;

@@ -89,7 +89,27 @@ function ba_upload_pdf($post, $type)
     }
 
     $file = $_FILES[$post];
-    $ext  = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+
+    // --- Explicit size / upload error handling ---
+    if ($file['error'] !== UPLOAD_ERR_OK) {
+        $error_messages = [
+            UPLOAD_ERR_INI_SIZE   => 'File is too large (exceeds server upload_max_filesize)',
+            UPLOAD_ERR_FORM_SIZE  => 'File is too large (exceeds form MAX_FILE_SIZE)',
+            UPLOAD_ERR_PARTIAL    => 'File was only partially uploaded',
+            UPLOAD_ERR_NO_FILE    => 'No file was uploaded',
+            UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder on server',
+            UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+            UPLOAD_ERR_EXTENSION  => 'A PHP extension stopped the file upload',
+        ];
+
+        $message = $error_messages[$file['error']] ?? 'Unknown upload error (code: ' . $file['error'] . ')';
+        wp_send_json_error([
+            'message' => $message,
+            'error_code' => $file['error']
+        ]);
+    }
+
+    $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
 
     if ($ext !== 'pdf') {
         wp_send_json_error(['message' => 'Only PDF files are allowed']);
@@ -102,7 +122,10 @@ function ba_upload_pdf($post, $type)
     $attachment_id = media_handle_upload($post, 0);
 
     if (is_wp_error($attachment_id)) {
-        wp_send_json_error(['message' => $attachment_id->get_error_message()]);
+        wp_send_json_error([
+            'message' => $attachment_id->get_error_message(),
+            'error_code' => $attachment_id->get_error_code()
+        ]);
     }
 
     $url      = wp_get_attachment_url($attachment_id);
