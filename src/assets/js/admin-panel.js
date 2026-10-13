@@ -255,6 +255,7 @@ function updateState(data, state)
 
 function updateStateAndId(data, state, id)
 {
+    updateFileId(data.id, id);
     const oldElement = document.getElementById("ba_pdf_" + data.id);
     data.state = state;
     data.id = id;
